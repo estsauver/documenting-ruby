@@ -60,22 +60,16 @@ also applicable to YAML. Do not use YAML to deserialize untrusted data.
 
 == Symbols
 
-Symbols are often seen as syntax sugar for simple strings, but they play a much
-more crucial role. The MRI Ruby implementation uses Symbols internally for
-method, variable and constant names. The reason for this is that symbols are
-simply integers with names attached to them, so they are faster to look up in
-hashtables.
+Since version 2.2, mortal symbols can be garbage collected. Most symbols you
+create (e.g. by calling +to_sym+) are mortal.
 
-Be careful with passing user input to methods such as +send+,
-+instance_variable_get+ or +_set+, +const_get+ or +_set+, etc.
-as these methods will convert string parameters to immortal symbols internally.
-This means that the memory used by the symbols are never freed.  This could
-allow a user to mount a denial of service attack against your application by
-flooding it with unique strings, which will cause memory to grow indefinitely
-until the Ruby process is killed or causes the system to slow to a halt.
+Immortal symbols will be created when defining a method (e.g. with +define_method+)
+or by C extensions calling `ID2SYM`. In those cases, you shouldn't use user input.
+Since immortal symbols can't be garbage collected, using user input for large
+immortal symbols can cause a DDoS vulnerability.
 
-The workaround to this is simple - don't call reflection/metaprogramming
-methods with user input.
+Other calls that used to be vulnerable such as +send+, +instance_variable_get+
+or +_set+, +const_get+ or +_set+, etc. are no longer a threath.
 
 == Regular expressions
 
